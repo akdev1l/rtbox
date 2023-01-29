@@ -1,4 +1,4 @@
-name: Rust
+name: cargo build and test
 
 on:
   push:
@@ -11,12 +11,12 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
-    - name: Build
+    - name: build debug
       run: cargo build --verbose
-    - name: Run tests
+    - name: Run tests on debug
       run: cargo test --verbose
+    - name: run integration testing
+      run: ./test/debug.sh
