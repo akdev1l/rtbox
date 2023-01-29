@@ -1,0 +1,16 @@
+#!/bin/bash
+
+CARGO_HOME="${CARGO_HOME:-${HOME}/.cache/cargo}"
+
+if ! [ -d "${CARGO_HOME}" ]; then
+    mkdir -p "${CARGO_HOME}"
+fi
+
+podman run --rm -it \
+    -v "$PWD:$PWD" -w "$PWD" \
+    -v /:/run/host \
+    -v "$CARGO_HOME:/cache/cargo" \
+    -e CARGO_HOME=/cache/cargo \
+    --userns=keep-id \
+    --security-opt label=disable \
+    rust:latest "$(basename "$0")" "$@"
