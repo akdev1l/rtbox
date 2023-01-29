@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if ! podman image exists rtbox-tester:latest; then
+    podman build -t rtbox-tester:latest -f test/Containerfile .
+fi
+
+
+podman run --rm -it \
+    -v "$PWD:$PWD" -w "$PWD" \
+    --security-opt label=disable \
+    rtbox-tester:latest "$(basename "$0")" "$@"

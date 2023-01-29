@@ -1,0 +1,4 @@
+FROM fedora:37
+
+
+RUN dnf install -y bats diffutils
