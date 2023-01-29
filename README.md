@@ -25,9 +25,18 @@ a toolbx-compatible CLI implementation. We are using rust so to build this proje
 
 1. Clone the repo
 2. run `./util/cargo build`
+3. The resulting binary is in `target/debug/rtbox` - it is a statically linked binary so you can move it wherever.
+4. The only runtime dependency we have is that a podman socket must be reachable. (`systemctl --user enable --now podman.socket`)
 
 The `./util/cargo` script is a wrapper that will fetch cargo from dockerhub and run the build process. It will also create a folder
 `${HOME}/.cache/cargo` to cache crates for future builds.
+
+#### Testing
+
+We have a basic testing system with `bats` the Bash Automated Testing System. With the power of containers we just run our tests on
+a containerized environment so it should be as easy as: `./test/debug.sh`. This will build a container locally `rtbox-tester:latest`
+which we use to run the testing.
+
 
 ## Usage
 
