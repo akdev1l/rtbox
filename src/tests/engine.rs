@@ -31,12 +31,13 @@ async fn rtbox_list_not_all() {
 
     let config: RtBoxConfig = RtBoxConfig::default();
     let mut container_engine: MockContainerEngine = MockContainerEngine::default();
+
+
+    container_engine.expect_list()
+        .return_const(Ok(vec![]));
+
     let rtbox_engine = RtBoxEngine::new(&config, &container_engine);
-
     let _ = rtbox_engine.list(None).await;
-
-    _ = container_engine.expect_list();
-
 }
 
 #[tokio::test]
@@ -44,9 +45,11 @@ async fn rtbox_list_all() {
 
     let config: RtBoxConfig = RtBoxConfig::default();
     let mut container_engine: MockContainerEngine = MockContainerEngine::default();
-    let rtbox_engine = RtBoxEngine::new(&config, &container_engine);
 
+    container_engine.expect_list()
+        .return_const(Ok(vec![]));
+
+    let rtbox_engine = RtBoxEngine::new(&config, &container_engine);
     let _ = rtbox_engine.list(Some(true)).await;
 
-    _ = container_engine.expect_list();
 }

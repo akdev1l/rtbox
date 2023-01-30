@@ -27,8 +27,8 @@ pub struct RtBoxExecOutput {
     return_code: u64,
 }
 
-#[async_trait]
 #[cfg_attr(test, automock)]
+#[async_trait]
 pub trait ContainerEngine {
     async fn create(
         &self,
@@ -88,13 +88,25 @@ impl<'a, T: ContainerEngine> RtBoxEngine<'a, T> {
     }
     pub async fn list(&self, all: Option<bool>) -> Result<Vec<RtBox>> {
         debug!("rtbox-list - all: {:?}", all);
+        let container_list = self.container_engine.list(all.unwrap_or(false));
 
-        Ok(vec![
-            RtBox{
-                name: "alex-is-here".to_string(),
-                image: "alex-image:latest".to_string(),
+        match container_list.await {
+            Ok(containers) => {
+                let rtbox_list = containers.iter().
+                    map(|c: &ListContainer| RtBox {
+                        name: c.names.as_ref().unwrap()[0].clone(),
+                        image: c.image.as_ref().unwrap().clone(),
+                    })
+                    .collect::<Vec<RtBox>>();
+
+                Ok(rtbox_list)
             },
-        ])
+            Err(e) => Err(RtBoxError {
+                root_cause: e.root_cause,
+                message: None,
+                command: None,
+            })
+        }
     }
     pub async fn run(&self, container: String, command: Vec<String>) -> Result<RtBoxExecOutput> {
         debug!("rtbox-run - container: {:?}, command: {:?}", container, command);

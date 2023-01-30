@@ -3,7 +3,7 @@ use log::{debug};
 use podman_api::Podman;
 use podman_api::api::{Container};
 use podman_api::models::ListContainer;
-use podman_api::opts::{ContainerCreateOpts, ContainerListOpts};
+use podman_api::opts::{ContainerCreateOpts, ContainerListOpts, ContainerListFilter};
 
 use crate::rtbox::engine::ContainerEngine;
 use crate::rtbox::engine::Result;
@@ -66,15 +66,24 @@ impl ContainerEngine for PodmanEngine {
 
     async fn list(&self, all: bool) -> Result<Vec<ListContainer>> {
 
-        let _podman_list = self.podman
+        const TOOLBX_LABEL: &str = "com.github.containers.toolbox";
+
+        let podman_list_response = self.podman
             .containers()
             .list(
                 &ContainerListOpts::builder()
                     .all(all)
+                    .filter(
+                        vec![ContainerListFilter::LabelKey(TOOLBX_LABEL.to_string())],
+                    )
                     .build(),
             ).await;
 
-        Ok(vec![])
+        podman_list_response.map_err(|e| RtBoxError {
+            root_cause: Some(e.to_string()),
+            command: Some("list".to_string()),
+            message: None,
+        })
     }
 
     async fn rm(&self, name: String, force: bool) -> Result<()> {
