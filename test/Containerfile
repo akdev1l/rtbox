@@ -1,4 +1,4 @@
 FROM fedora:37
 
 
-RUN dnf install -y bats diffutils
+RUN dnf install -y bats diffutils podman-remote

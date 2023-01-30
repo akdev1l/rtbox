@@ -21,7 +21,7 @@ EOF
   assert_equal "${expected_output}" "${tbox_output}"
 }
 
-@test "rtbox list -- with empty list" {   
+@test "rtbox list | with empty list" {   
 
   tbox_name="test-$(date +%s)"
   tbox_output="$(_rtbox list)"
@@ -34,7 +34,7 @@ EOF
   assert_equal "${expected_output}" "${tbox_output}"
 }
 
-@test "rtbox list --all true -- with empty list" {   
+@test "rtbox list --all true | with empty list" {   
 
   tbox_name="test-$(date +%s)"
   tbox_output="$(_rtbox list --all true)"
@@ -47,7 +47,7 @@ EOF
   assert_equal "${expected_output}" "${tbox_output}"
 }
 
-@test "rtbox list --all false should match rtbox list" {
+@test "rtbox list --all false | should match rtbox list" {
 
   tbox_name="test-$(date +%s)"
   tbox_output="$(_rtbox list --all false)"
@@ -55,4 +55,75 @@ EOF
   expected_output="$(_rtbox list)"
 
   assert_equal "${expected_output}" "${tbox_output}"
+}
+
+@test "rtbox list --all false | matches plain list with one container running" {
+
+  tbox_name="test-$(date +%s)"
+
+  container="$(_podman --url 'unix:/var/run/docker.sock' run \
+    --name test-container \
+    --label com.github.containers.toolbox=true \
+    --detach --rm \
+    rtbox-tester:latest sleep 5s)"
+
+  tbox_output="$(_rtbox list --all false)"
+  expected_output="$(_rtbox list)"
+
+  assert_equal "${expected_output}" "${tbox_output}"
+
+  _podman kill "${container}"
+}
+
+@test "rtbox list | with one container running" {
+
+  tbox_name="test-$(date +%s)"
+
+  container_name="test-container-$(date +%s)"
+
+  _podman --url 'unix:/var/run/docker.sock' run \
+    --name "${container_name}" \
+    --label com.github.containers.toolbox=true \
+    --detach --rm \
+    rtbox-tester:latest sleep 5s
+
+  tbox_output="$(_rtbox list --all false)"
+  expected_output="$(cat <<EOF
+{"List":[{"name":"${container_name}","image":"localhost/rtbox-tester:latest"}]}
+EOF
+)"
+
+  assert_equal "${expected_output}" "${tbox_output}"
+
+  _podman kill "${container_name}"
+}
+
+@test "rtbox list | with two containers running" {
+
+  containers=(
+    "test-container-$(date +%s)-1"
+    "test-container-$(date +%s)-2"
+  )
+
+  _podman run \
+    --name "${containers[0]}" \
+    --label com.github.containers.toolbox=true \
+    --detach --rm \
+    rtbox-tester:latest sleep 5s
+
+  _podman run \
+    --name "${containers[1]}" \
+    --label com.github.containers.toolbox=true \
+    --detach --rm \
+    rtbox-tester:latest sleep 5s
+
+  tbox_output="$(_rtbox list)"
+  expected_output="$(cat <<EOF
+{"List":[{"name":"${containers[0]}","image":"localhost/rtbox-tester:latest"},{"name":"${containers[1]}","image":"localhost/rtbox-tester:latest"}]}
+EOF
+)"
+
+  assert_equal "${expected_output}" "${tbox_output}"
+
+  _podman kill "${containers[@]}"
 }
