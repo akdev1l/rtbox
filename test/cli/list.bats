@@ -18,5 +18,41 @@ Options:
 EOF
 )"
 
-  [ "${tbox_output}" = "${expected_output}" ]
+  assert_equal "${expected_output}" "${tbox_output}"
+}
+
+@test "rtbox list -- with empty list" {   
+
+  tbox_name="test-$(date +%s)"
+  tbox_output="$(_rtbox list)"
+
+  expected_output="$(cat <<EOF
+{"List":[]}
+EOF
+)"
+
+  assert_equal "${expected_output}" "${tbox_output}"
+}
+
+@test "rtbox list --all true -- with empty list" {   
+
+  tbox_name="test-$(date +%s)"
+  tbox_output="$(_rtbox list --all true)"
+
+  expected_output="$(cat <<EOF
+{"List":[]}
+EOF
+)"
+
+  assert_equal "${expected_output}" "${tbox_output}"
+}
+
+@test "rtbox list --all false should match rtbox list" {
+
+  tbox_name="test-$(date +%s)"
+  tbox_output="$(_rtbox list --all false)"
+
+  expected_output="$(_rtbox list)"
+
+  assert_equal "${expected_output}" "${tbox_output}"
 }

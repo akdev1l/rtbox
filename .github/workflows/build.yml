@@ -20,3 +20,7 @@ jobs:
       run: cargo test --verbose
     - name: run integration testing
       run: ./test/debug.sh
+    - name: JUnit Report Action
+      uses: mikepenz/action-junit-report@v3.7.1
+      with:
+        report_paths: '***/report.xml'

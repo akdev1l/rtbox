@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./util/bats test/*/**.bats
+./util/bats --report-formatter junit -Tro . test
