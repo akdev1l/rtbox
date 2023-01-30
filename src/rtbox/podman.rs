@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use log::{info, warn};
 use serde::{Serialize, Deserialize};
 use podman_api::Podman;
@@ -5,45 +6,55 @@ use podman_api::api::{Container};
 use podman_api::models::ListContainer;
 use podman_api::opts::{ContainerCreateOpts, ContainerListOpts};
 
-use crate::rtbox::error::PodmanError;
+use crate::rtbox::engine::ContainerEngine;
+use crate::rtbox::engine::Result;
+use crate::rtbox::error::RtBoxError;
 
 #[derive(Debug)]
 pub struct PodmanEngine {
     podman: Podman,
 }
 
-type Result<T> = std::result::Result<T, PodmanError>;
-
 impl PodmanEngine {
-    pub fn new(podman_uri: &String) -> Result<Self> {
+    pub fn new(podman_uri: &String) -> Self {
         Podman::new(podman_uri)
             .map(|podman| Self {
                 podman: podman,
-            })
-            .map_err(|e| PodmanError {
-                method: "new".to_string(),
-                message: e.to_string(),
-            })
+            }).unwrap()
     }
-    pub async fn create(self, name: &str, image: &str, entrypoint: Vec<&str>, env: Vec<(&str, &str)>) -> Result<Container> {
-        info!("podman-create: {} FROM {}", name, image);
+}
 
+#[async_trait]
+impl ContainerEngine for PodmanEngine {
+    async fn create(
+        self,
+        name: String,
+        image: String,
+        entrypoint: Vec<String>,
+        env: Vec<(String, String)>) -> Result<Container>
+    {
+        info!("podman-create: {} FROM {}", name, image);
+        /*
         self.podman.containers()
             .create(
 			   &ContainerCreateOpts::builder()
 				.image(image)
-                .command(entrypoint)
+                .command(vec![
+                    "/usr/bin/sleep".to_string(), "infinity".to_string(),
+                ])
                 .env(env)
                 .build(),
 			).await
 			.map(|container| self.podman.containers().get(container.id))
-			.map_err(|e| PodmanError {
-				method: "create".to_string(),
-				message: e.to_string(),
-			})
+        */
+        Err(RtBoxError {
+            message: Some("not implemented".to_string()),
+            command: None,
+            root_cause: Some("not implemented".to_string()),
+        })
     }
 
-    pub async fn list(self, all: bool) -> Result<Vec<ListContainer>> {
+    async fn list(self, all: bool) -> Result<Vec<ListContainer>> {
 
         let podman_list = self.podman
             .containers()
@@ -53,34 +64,38 @@ impl PodmanEngine {
                     .build(),
             ).await;
 
-        let rtbox_list = podman_list
-            .map_err(|e| PodmanError {
-                method: "list".to_string(),
-                message: e.to_string(),
-            });
-
-        rtbox_list
+        Ok(vec![])
     }
 
-    pub async fn rm(self, name: String, force: bool) -> Result<()> {
+    async fn rm(self, name: String, force: bool) -> Result<()> {
         info!("podman-rm --force={} {}", force, name);
 
-        Ok::<(), PodmanError>(())
+        Ok::<(), RtBoxError>(())
     }
 
-    pub async fn start(self, name: String) -> Result<Container> {
+    async fn start(self, name: String) -> Result<Container> {
         info!("podman-start {}", name);
 
-        Ok::<Container, PodmanError>(Container::new(self.podman, ""))
+        Ok::<Container, RtBoxError>(Container::new(self.podman, ""))
     }
 
-    pub async fn get(self, name: String) -> Result<Container> {
+    async fn get(self, name: String) -> Result<Container> {
         info!("getting container by name {}", name);
 
-        Ok::<Container, PodmanError>(Container::new(self.podman, ""))
+        Ok::<Container, RtBoxError>(Container::new(self.podman, ""))
     }
 
-    pub async fn exec(self, name: String, command: Vec<String>, tty: bool, interactive: bool) {
+    async fn exec(self, name: String, command: Vec<String>, tty: bool, interactive: bool) {
         info!("podman-exec -it {} -- {:?}", name, command);
+    }
+
+    async fn export(
+        self,
+        container: String,
+        binary_path: String,
+        service_unit: String,
+        application: String,
+    ) -> Result<()> {
+        Ok(())
     }
 }

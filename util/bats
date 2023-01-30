@@ -4,8 +4,13 @@ if ! podman image exists rtbox-tester:latest; then
     podman build -t rtbox-tester:latest -f test/Containerfile .
 fi
 
+RTBOX_PODMAN_SOCKET="/run/user/$(id -u)/podman/podman.sock"
+if ! [ -e "${RTBOX_PODMAN_SOCKET}" ]; then
+    RTBOX_PODMAN_SOCKET="/var/run/docker.sock"
+fi
 
 podman run --rm -it \
     -v "$PWD:$PWD" -w "$PWD" \
+    -v "${RTBOX_PODMAN_SOCKET}:/var/run/docker.sock" \
     --security-opt label=disable \
     rtbox-tester:latest "$(basename "$0")" "$@"

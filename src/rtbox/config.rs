@@ -1,9 +1,10 @@
 use std::boxed::Box;
-use std::vec::Vec;
+use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
+use std::vec::Vec;
 
 use serde::{Serialize, Deserialize};
 
@@ -11,24 +12,22 @@ use serde::{Serialize, Deserialize};
 pub struct RtBoxConfig {
     pub default_image: String,
     pub socket_path: String,
-    pub entrypoint: Vec<String>,
 }
 
 impl Default for RtBoxConfig {
     fn default() -> Self {
+        let rtbox_podman_socket_path = env::var("RTBOX_PODMAN_SOCKET")
+            .unwrap_or("unix:///var/run/docker.sock".to_string());
         Self {
             default_image: "fedora:latest".to_string(),
-            socket_path: "unix:///run/user/1000/podman/podman.sock".to_string(),
-            entrypoint: vec![
-                "/usr/bin/bash".to_string(), "-l".to_string(),
-            ],
+            socket_path: rtbox_podman_socket_path,
         }
     }
 }
 
 impl RtBoxConfig {
-    pub fn new(config_path: &String) -> Self {
-        let file_path = Path::new(config_path);
+    pub fn new(config_path: &str) -> Self {
+        let file_path = Path::new(&config_path);
         if let Ok(file) = File::open(file_path) {
             let reader = BufReader::new(file);
 
