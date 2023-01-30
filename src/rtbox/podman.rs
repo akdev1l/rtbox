@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use log::{info, warn};
-use serde::{Serialize, Deserialize};
+use log::{debug};
 use podman_api::Podman;
 use podman_api::api::{Container};
 use podman_api::models::ListContainer;
@@ -27,13 +26,23 @@ impl PodmanEngine {
 #[async_trait]
 impl ContainerEngine for PodmanEngine {
     async fn create(
-        self,
+        &self,
         name: String,
         image: String,
         entrypoint: Vec<String>,
         env: Vec<(String, String)>) -> Result<Container>
     {
-        info!("podman-create: {} FROM {}", name, image);
+        debug!("podman-create - name: {:?}", name);
+        debug!("FROM {:?}", image);
+        debug!("ENTRYPOINT {:?}", entrypoint);
+        debug!("ENV: {:?}", env);
+
+        let _podman_create_opts = ContainerCreateOpts::builder()
+            .image(image)
+            .command(entrypoint)
+            .env(env)
+            .build();
+            
         /*
         self.podman.containers()
             .create(
@@ -47,6 +56,7 @@ impl ContainerEngine for PodmanEngine {
 			).await
 			.map(|container| self.podman.containers().get(container.id))
         */
+
         Err(RtBoxError {
             message: Some("not implemented".to_string()),
             command: None,
@@ -54,9 +64,9 @@ impl ContainerEngine for PodmanEngine {
         })
     }
 
-    async fn list(self, all: bool) -> Result<Vec<ListContainer>> {
+    async fn list(&self, all: bool) -> Result<Vec<ListContainer>> {
 
-        let podman_list = self.podman
+        let _podman_list = self.podman
             .containers()
             .list(
                 &ContainerListOpts::builder()
@@ -67,35 +77,26 @@ impl ContainerEngine for PodmanEngine {
         Ok(vec![])
     }
 
-    async fn rm(self, name: String, force: bool) -> Result<()> {
-        info!("podman-rm --force={} {}", force, name);
+    async fn rm(&self, name: String, force: bool) -> Result<()> {
+        debug!("podman-rm - name: {:?}, force: {:?}", name, force);
 
         Ok::<(), RtBoxError>(())
     }
 
-    async fn start(self, name: String) -> Result<Container> {
-        info!("podman-start {}", name);
+    async fn start(&self, name: String) -> Result<Container> {
+        debug!("podman-start - name: {:?}", name);
 
-        Ok::<Container, RtBoxError>(Container::new(self.podman, ""))
+        Ok::<Container, RtBoxError>(Container::new(self.podman.clone(), ""))
     }
 
-    async fn get(self, name: String) -> Result<Container> {
-        info!("getting container by name {}", name);
+    async fn inspect(&self, name: String) -> Result<Container> {
+        debug!("podman-inspect - name: {:?}", name);
 
-        Ok::<Container, RtBoxError>(Container::new(self.podman, ""))
+        Ok::<Container, RtBoxError>(Container::new(self.podman.clone(), ""))
     }
 
-    async fn exec(self, name: String, command: Vec<String>, tty: bool, interactive: bool) {
-        info!("podman-exec -it {} -- {:?}", name, command);
-    }
-
-    async fn export(
-        self,
-        container: String,
-        binary_path: String,
-        service_unit: String,
-        application: String,
-    ) -> Result<()> {
-        Ok(())
+    async fn exec(&self, name: String, command: Vec<String>, tty: bool, interactive: bool) {
+        debug!("podman-exec - name: {:?}, tty: {:?}, interactive: {:?}", name, tty, interactive);
+        debug!("command: {:?}", command);
     }
 }

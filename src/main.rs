@@ -1,3 +1,4 @@
+#[macro_use] extern crate log;
 use clap::Parser;
 
 mod rtbox{
@@ -24,6 +25,7 @@ use rtbox::podman::PodmanEngine;
 async fn main() {
 
     env_logger::init();
+
     let args = TboxCli::parse();
     let rtbox_config = RtBoxConfig::new("/etc/rtbox.json");
     let podman_engine = PodmanEngine::new(&rtbox_config.socket_path);
@@ -34,6 +36,12 @@ async fn main() {
 
     let output = match args.command {
         TboxCommands::Create { name, image, home } => {
+            debug!("rtbox-create - name: {:?}, image: {:?}, home: {:?}",
+                name,
+                image,
+                home.unwrap_or("<no home>".to_string())
+            );
+
 
             let image = image.unwrap_or("fedora:latest".to_string());
 
@@ -48,6 +56,12 @@ async fn main() {
             }
         }
         TboxCommands::Rm { name, force, all } => {
+            debug!("rtbox-rm - name: {:?}, force: {:?}, all: {:?}",
+                name,
+                force,
+                all
+            );
+
             if let Ok(tbox_rm_response) = rtbox_engine.rm(name[0].clone(), force, all).await {
                 Output::Rm(tbox_rm_response)
             } else {
@@ -59,26 +73,32 @@ async fn main() {
             }
         }
         TboxCommands::List { all } => {
+            debug!("rtbox-list - all: {:?}", all);
 
             match rtbox_engine.list(all).await {
                 Ok(tbox_list) => Output::List(tbox_list),
                 Err(e) => Output::Error(RtBoxError{
                     command: Some("rm".to_string()),
                     message: Some("error creating container".to_string()),
-                    root_cause: Some("not implemented".to_string()),
+                    root_cause: e.root_cause,
                 })
             }
         }
         TboxCommands::Run { container, cmd } => {
-            println!("podman exec -it {:?} {:?}", container, cmd);
-            Output::Error(RtBoxError{
-                command: Some("run".to_string()),
-                message: Some("error creating container".to_string()),
-                root_cause: Some("not implemented".to_string()),
-            })
+            debug!("rtbox-run - container: {:?}, cmd: {:?}", container, cmd);
+
+            match rtbox_engine.run(container, cmd).await {
+                Ok(rtbox_run_result) => Output::Run(rtbox_run_result),
+                Err(e) => Output::Error(RtBoxError{
+                    command: Some("run".to_string()),
+                    message: Some("error running container".to_string()),
+                    root_cause: e.root_cause,
+                })
+            }
         }
         TboxCommands::Enter { name } => {
-            println!("podman exec -it {:?} /bin/bash -l", name);
+            debug!("rtbox-enter - container: {:?}", name);
+
             Output::Error(RtBoxError{
                 command: Some("enter".to_string()),
                 message: Some("error creating container".to_string()),
@@ -86,7 +106,14 @@ async fn main() {
             })
         }
         TboxCommands::Export { container, binary, service_unit, application } => {
-            println!("export {}:{}", container, binary.unwrap_or("null".to_string()));
+            debug!(
+                "rtbox-export - container: {:?}, binary: {:?}, service_unit: {:?}, application: {:?}",
+                container,
+                binary,
+                service_unit,
+                application,
+            );
+
             Output::Error(RtBoxError{
                 command: Some("export".to_string()),
                 message: Some("error creating container".to_string()),
@@ -94,6 +121,13 @@ async fn main() {
             })
         }
         TboxCommands::Rmi { all, force, image_name } => {
+            debug!(
+                "rtbox-rmi - all: {:?}, force: {:?}, image: {:?}",
+                all,
+                force,
+                image_name
+            );
+
             Output::Error(RtBoxError{
                 command: Some("rmi".to_string()),
                 message: Some("error creating container".to_string()),
@@ -101,6 +135,13 @@ async fn main() {
             })
         }
         TboxCommands::Init { gid, home, shell } => {
+            debug!(
+                "rtbox-init - gid: {:?}, home: {:?}, shell: {:?}",
+                gid,
+                home,
+                shell
+            );
+
             Output::Error(RtBoxError{
                 command: Some("init".to_string()),
                 message: Some("error creating container".to_string()),

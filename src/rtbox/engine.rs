@@ -4,16 +4,12 @@ use std::char;
 #[cfg(test)]
 use mockall::automock;
 
-use log::{info, warn};
-use podman_api::Podman;
-use podman_api::opts::{ContainerCreateOpts, ContainerListOpts};
 use podman_api::api::{Container};
 use podman_api::models::ListContainer;
 use serde::{Serialize, Deserialize};
 
 use crate::rtbox::error::RtBoxError;
 use crate::rtbox::config::RtBoxConfig;
-use crate::rtbox::podman::PodmanEngine;
 
 
 pub type Result<T> = std::result::Result<T, RtBoxError>;
@@ -35,24 +31,17 @@ pub struct RtBoxExecOutput {
 #[cfg_attr(test, automock)]
 pub trait ContainerEngine {
     async fn create(
-        self,
+        &self,
         name: String,
         image: String,
         entrypoint: Vec<String>,
         env: Vec<(String, String)>
     ) -> Result<Container>;
-    async fn list(self, all: bool) -> Result<Vec<ListContainer>>;
-    async fn rm(self, name: String, force: bool) -> Result<()>;
-    async fn exec(self, name: String, command: Vec<String>, tty: bool, interactive: bool);
-    async fn start(self, name: String) -> Result<Container>;
-    async fn get(self, name: String) -> Result<Container>;
-    async fn export(
-        self,
-        container: String,
-        binary_path: String,
-        service_unit: String,
-        application: String
-    ) -> Result<()>;
+    async fn list(&self, all: bool) -> Result<Vec<ListContainer>>;
+    async fn rm(&self, name: String, force: bool) -> Result<()>;
+    async fn exec(&self, name: String, command: Vec<String>, tty: bool, interactive: bool);
+    async fn start(&self, name: String) -> Result<Container>;
+    async fn inspect(&self, name: String) -> Result<Container>;
 }
 
 pub struct RtBoxEngine<'a, T: ContainerEngine> {
@@ -62,14 +51,14 @@ pub struct RtBoxEngine<'a, T: ContainerEngine> {
 
 #[async_trait]
 pub trait ToolbxEngine {
-    async fn create(self, name: &str, image: &str) -> Result<RtBox>;
+    async fn create(&self, name: &str, image: &str) -> Result<RtBox>;
     async fn rm(
         self,
         name: String,
         force: Option<bool>,
         all: Option<bool>
     ) -> Result<()>;
-    async fn list(self, all: Option<bool>) -> Result<Vec<RtBox>>;
+    async fn list(&self, all: Option<bool>) -> Result<Vec<RtBox>>;
     async fn exec(
         self,
         container: String,
@@ -84,16 +73,22 @@ impl<'a, T: ContainerEngine> RtBoxEngine<'a, T> {
             config: rtbox_config,
         }
     }
-    pub async fn create(self, name: &str, image: &str) -> Result<RtBox> {
+    pub async fn create(&self, name: &str, image: &str) -> Result<RtBox> {
+        debug!("rtbox-create - name: {:?}, image: {:?}", name, image);
+
         Ok(RtBox{
             name: name.to_string(),
             image: image.to_string(),
         })
     }
-    pub async fn rm(self, name: String, force: Option<bool>, all: Option<bool>) -> Result<()> {
+    pub async fn rm(&self, name: String, force: Option<bool>, all: Option<bool>) -> Result<()> {
+        debug!("rtbox-rm - name: {:?}, force: {:?}, all: {:?}", name, force, all);
+
         Ok(())
     }
-    pub async fn list(self, all: Option<bool>) -> Result<Vec<RtBox>> {
+    pub async fn list(&self, all: Option<bool>) -> Result<Vec<RtBox>> {
+        debug!("rtbox-list - all: {:?}", all);
+
         Ok(vec![
             RtBox{
                 name: "alex-is-here".to_string(),
@@ -101,7 +96,9 @@ impl<'a, T: ContainerEngine> RtBoxEngine<'a, T> {
             },
         ])
     }
-    pub async fn exec(self, container: String, command: Vec<String>) -> Result<RtBoxExecOutput> {
+    pub async fn run(&self, container: String, command: Vec<String>) -> Result<RtBoxExecOutput> {
+        debug!("rtbox-run - container: {:?}, command: {:?}", container, command);
+
         Ok(RtBoxExecOutput {
             stderr: vec![char::default()],
             stdout: vec![char::default()],

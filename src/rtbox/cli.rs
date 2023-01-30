@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::RtBox;
 use crate::RtBoxError;
+use crate::rtbox::engine::RtBoxExecOutput;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 pub enum TboxCliOutputFormat {
@@ -143,6 +144,7 @@ pub enum TboxCommands {
 pub enum Output {
     Create(RtBox),
     List(Vec<RtBox>),
+    Run(RtBoxExecOutput),
     Rm(()),
     Error(RtBoxError),
 }
