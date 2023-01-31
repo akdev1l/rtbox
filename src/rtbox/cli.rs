@@ -143,6 +143,7 @@ pub enum TboxCommands {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Output {
     Create(RtBox),
+    Init(()),
     List(Vec<RtBox>),
     Run(RtBoxExecOutput),
     Rm(()),

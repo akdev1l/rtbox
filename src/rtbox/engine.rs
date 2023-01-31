@@ -64,6 +64,7 @@ pub trait ToolbxEngine {
         container: String,
         command: Vec<String>
     ) -> Result<RtBoxExecOutput>;
+    async fn init(gid: i32, home: String, shell: String);
 }
 
 impl<'a, T: ContainerEngine> RtBoxEngine<'a, T> {
@@ -116,6 +117,11 @@ impl<'a, T: ContainerEngine> RtBoxEngine<'a, T> {
             stdout: vec![char::default()],
             return_code: 0,
         })
+    }
+    pub async fn init(&self, gid: i32, home: String, shell: String) -> Option<RtBoxError> {
+        debug!("rtbox-init - gid: {:?}, home: {:?}, shell: {:?}", gid, home, shell);
+
+        None
     }
 }
 

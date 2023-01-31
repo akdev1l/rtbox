@@ -142,11 +142,22 @@ async fn main() {
                 shell
             );
 
-            Output::Error(RtBoxError{
-                command: Some("init".to_string()),
-                message: Some("error creating container".to_string()),
-                root_cause: Some("not implemented".to_string()),
-            })
+            if std::process::id() != 1 {
+                Output::Error(RtBoxError {
+                    command: Some("init".to_string()),
+                    message: Some("this is only supposed to be run as the init system of a container".to_string()),
+                    root_cause:Some("we are not running as PID 1".to_string()),
+                })
+            } else {
+                match rtbox_engine.init(gid, home, shell).await {
+                    Some(e) => Output::Error(RtBoxError {
+                        command: Some("init".to_string()),
+                        message: Some("container init system crashed".to_string()),
+                        root_cause: e.root_cause,
+                    }),
+                    None => Output::Init(()),
+                }
+            }
         }
     };
 
