@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use log::{debug};
 use podman_api::Podman;
+use podman_api::ApiVersion;
 use podman_api::api::{Container};
 use podman_api::models::ListContainer;
 use podman_api::opts::{ContainerCreateOpts, ContainerListOpts, ContainerListFilter};
@@ -16,7 +17,7 @@ pub struct PodmanEngine {
 
 impl PodmanEngine {
     pub fn new(podman_uri: &String) -> Self {
-        Podman::new(podman_uri)
+        Podman::new_versioned(podman_uri, ApiVersion::new(3, 0, 0))
             .map(|podman| Self {
                 podman: podman,
             }).unwrap()
