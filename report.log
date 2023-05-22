@@ -1,0 +1,19 @@
+[34;1m/mnt/sata/rust/code/tbox/test/cli/create.bats
+[0m[1G   rtbox create --help[K[97G1/8[2G[1G ✓ rtbox create --help[K
+[0m[34;1m/mnt/sata/rust/code/tbox/test/cli/enter.bats
+[0m[1G   rtbox enter --help[K[97G2/8[2G[1G ✓ rtbox enter --help[K
+[0m[34;1m/mnt/sata/rust/code/tbox/test/cli/export.bats
+[0m[1G   rtbox export --help[K[97G3/8[2G[1G ✓ rtbox export --help[K
+[0m[34;1m/mnt/sata/rust/code/tbox/test/cli/help.bats
+[0m[1G   rtbox --help[K[97G4/8[2G[1G ✓ rtbox --help[K
+[0m[34;1m/mnt/sata/rust/code/tbox/test/cli/list.bats
+[0m[1G   rtbox list --help[K[97G5/8[2G[1G ✓ rtbox list --help[K
+[0m[34;1m/mnt/sata/rust/code/tbox/test/cli/rm.bats
+[0m[1G   rtbox rm --help[K[97G6/8[2G[1G ✓ rtbox rm --help[K
+[0m[34;1m/mnt/sata/rust/code/tbox/test/cli/rmi.bats
+[0m[1G   rtbox rmi --help[K[97G7/8[2G[1G ✓ rtbox rmi --help[K
+[0m[34;1m/mnt/sata/rust/code/tbox/test/cli/run.bats
+[0m[1G   rtbox run --help[K[97G8/8[2G[1G ✓ rtbox run --help[K
+[0m[32;1m
+8 tests, 0 failures
+[0m

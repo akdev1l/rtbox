@@ -8,6 +8,7 @@ use podman_api::api::{Container};
 use podman_api::models::ListContainer;
 use serde::{Serialize, Deserialize};
 
+use crate::rtbox::init::{RtBoxInit, RtBoxInitState, RtBoxInitSystem};
 use crate::rtbox::error::RtBoxError;
 use crate::rtbox::config::RtBoxConfig;
 
@@ -118,9 +119,27 @@ impl<'a, T: ContainerEngine> RtBoxEngine<'a, T> {
             return_code: 0,
         })
     }
-    pub async fn init(&self, gid: i32, home: String, shell: String) -> Option<RtBoxError> {
+    pub async fn init<'b>(
+        &self,
+        uid: i32,
+        gid: i32,
+        username: &'b str,
+        home: &'b str,
+        shell: &'b str
+    ) -> Option<RtBoxError> {
         debug!("rtbox-init - gid: {:?}, home: {:?}, shell: {:?}", gid, home, shell);
 
+        let rtbox_init_state = RtBoxInitState {
+            uid: uid,
+            gid: gid,
+            home: home,
+            username: username,
+            shell: shell,
+        };
+
+        let rtbox_init: RtBoxInit = RtBoxInit::new();
+
+        rtbox_init.run(&rtbox_init_state);
         None
     }
 }

@@ -25,22 +25,22 @@ pub enum TboxLogLevel {
 #[clap(about = "A rust implementation of toolbx", long_about = None)]
 pub struct TboxCli {
     #[clap(short, long)]
-    verbose: Option<i32>,
+    pub verbose: Option<i32>,
     /// Automatically answer yes to all questions
     #[clap(short, long)]
     #[arg(short = 'y')]
     #[arg(default_value_t = false)]
-    assume_yes: bool,
+    pub assume_yes: bool,
     /// Set the logging level
     #[clap(long)]
     #[arg(default_value_t = TboxLogLevel::INFO)]
     #[arg(value_enum)]
-    log_level: TboxLogLevel,
+    pub log_level: TboxLogLevel,
     /// Set the output format
     #[clap(short, long)]
     #[arg(value_enum)]
     #[arg(default_value_t = TboxCliOutputFormat::Human)]
-    format: TboxCliOutputFormat,
+    pub format: TboxCliOutputFormat,
     /// Do not actually execute API calls
     #[clap(long)]
     #[arg(default_value_t = false)]
@@ -133,6 +133,10 @@ pub enum TboxCommands {
     Init {
         #[clap(long)]
         gid: i32,
+        #[clap(long)]
+        uid: i32,
+        #[clap(long)]
+        username: String,
         #[clap(long)]
         home: String,
         #[clap(long)]

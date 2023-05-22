@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="1.145">
+<testsuite name="cli/create.bats" tests="1" failures="0" errors="0" skipped="0" time="0.009" timestamp="2023-02-02T03:02:46" hostname="7c5535568c10">
+    <testcase classname="cli/create.bats" name="rtbox create --help" time="0.009" />
+
+</testsuite>
+<testsuite name="cli/enter.bats" tests="1" failures="0" errors="0" skipped="0" time="0.014" timestamp="2023-02-02T03:02:46" hostname="7c5535568c10">
+    <testcase classname="cli/enter.bats" name="rtbox enter --help" time="0.014" />
+
+</testsuite>
+<testsuite name="cli/export.bats" tests="1" failures="0" errors="0" skipped="0" time="0.010" timestamp="2023-02-02T03:02:46" hostname="7c5535568c10">
+    <testcase classname="cli/export.bats" name="rtbox export --help" time="0.010" />
+
+</testsuite>
+<testsuite name="cli/help.bats" tests="1" failures="0" errors="0" skipped="0" time="0.010" timestamp="2023-02-02T03:02:46" hostname="7c5535568c10">
+    <testcase classname="cli/help.bats" name="rtbox --help" time="0.010" />
+
+</testsuite>
+<testsuite name="cli/init.bats" tests="3" failures="0" errors="0" skipped="0" time="0.426" timestamp="2023-02-02T03:02:46" hostname="7c5535568c10">
+    <testcase classname="cli/init.bats" name="rtbox init --help" time="0.013" />
+    <testcase classname="cli/init.bats" name="rtbox init | errors out when not running as PID1" time="0.014" />
+    <testcase classname="cli/init.bats" name="rtbox init | will start up when running as PID1" time="0.399" />
+
+</testsuite>
+<testsuite name="cli/list.bats" tests="7" failures="0" errors="0" skipped="0" time="0.647" timestamp="2023-02-02T03:02:47" hostname="7c5535568c10">
+    <testcase classname="cli/list.bats" name="rtbox list --help" time="0.013" />
+    <testcase classname="cli/list.bats" name="rtbox list | with empty list" time="0.014" />
+    <testcase classname="cli/list.bats" name="rtbox list --all true | with empty list" time="0.013" />
+    <testcase classname="cli/list.bats" name="rtbox list --all false | should match rtbox list" time="0.021" />
+    <testcase classname="cli/list.bats" name="rtbox list --all false | matches plain list with one container running" time="0.148" />
+    <testcase classname="cli/list.bats" name="rtbox list | with one container running" time="0.145" />
+    <testcase classname="cli/list.bats" name="rtbox list | with two containers running" time="0.293" />
+
+</testsuite>
+<testsuite name="cli/rm.bats" tests="1" failures="0" errors="0" skipped="0" time="0.009" timestamp="2023-02-02T03:02:47" hostname="7c5535568c10">
+    <testcase classname="cli/rm.bats" name="rtbox rm --help" time="0.009" />
+
+</testsuite>
+<testsuite name="cli/rmi.bats" tests="1" failures="0" errors="0" skipped="0" time="0.011" timestamp="2023-02-02T03:02:47" hostname="7c5535568c10">
+    <testcase classname="cli/rmi.bats" name="rtbox rmi --help" time="0.011" />
+
+</testsuite>

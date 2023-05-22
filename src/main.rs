@@ -2,10 +2,11 @@
 use clap::Parser;
 
 mod rtbox{
-    pub mod engine;
-    pub mod error;
     pub mod cli;
     pub mod config;
+    pub mod engine;
+    pub mod error;
+    pub mod init;
     pub mod podman;
 }
 
@@ -14,7 +15,7 @@ mod tests {
     pub mod engine;
 }
 
-use rtbox::cli::{TboxCli, TboxCommands, Output};
+use rtbox::cli::{TboxCli, TboxCliOutputFormat, TboxCommands, Output};
 use rtbox::config::RtBoxConfig;
 use rtbox::engine::{RtBoxEngine, RtBox};
 use rtbox::error::RtBoxError;
@@ -134,7 +135,7 @@ async fn main() {
                 root_cause: Some("not implemented".to_string()),
             })
         }
-        TboxCommands::Init { gid, home, shell } => {
+        TboxCommands::Init { uid, gid, username, home, shell } => {
             debug!(
                 "rtbox-init - gid: {:?}, home: {:?}, shell: {:?}",
                 gid,
@@ -149,7 +150,7 @@ async fn main() {
                     root_cause:Some("we are not running as PID 1".to_string()),
                 })
             } else {
-                match rtbox_engine.init(gid, home, shell).await {
+                match rtbox_engine.init(uid, gid, &username, &home, &shell).await {
                     Some(e) => Output::Error(RtBoxError {
                         command: Some("init".to_string()),
                         message: Some("container init system crashed".to_string()),
@@ -161,9 +162,19 @@ async fn main() {
         }
     };
 
-    if let Ok(formatted_output) = serde_json::to_string(&output) {
-        println!("{}", formatted_output);
-    } else {
-        eprintln!("error");
-    }
+    /* We check the format selected and dispatch to the correct formatter */
+    let output = match args.format {
+        TboxCliOutputFormat::Human => {
+            "HUMAN FORMAT".to_string()
+        },
+        TboxCliOutputFormat::Json => {
+            if let Ok(formatted_output) = serde_json::to_string_pretty(&output) {
+                formatted_output
+            } else {
+                "ERROR SERIALIZING".to_string()
+            }
+        },
+    };
+
+    println!("{}", output);
 }

@@ -1,11 +1,14 @@
 #!/bin/bash
 
 CARGO_HOME="${CARGO_HOME:-${HOME}/.cache/cargo}"
+readonly CARGO_HOME
 
 if ! [ -d "${CARGO_HOME}" ]; then
     mkdir -p "${CARGO_HOME}"
 fi
+RTBOX_PODMAN_SOCKET="${RTBOX_PODMAN_SOCKET:-docker:///run/user/$(id -u)/podman/podman.sock}"
 RTBOX_PODMAN_SOCKET_PATH=$(awk '{printf("/%s", $2)}' FS=":///" <<<$RTBOX_PODMAN_SOCKET)
+readonly RTBOX_PODMAN_SOCKET_PATH
 
 podman run --rm -it \
     -v "$PWD:$PWD" -w "$PWD" \
