@@ -3,7 +3,7 @@ use log::{debug};
 use podman_api::Podman;
 use podman_api::ApiVersion;
 use podman_api::api::{Container};
-use podman_api::models::ListContainer;
+use podman_api::models::{ListContainer, Namespace, ContainerMount};
 use podman_api::opts::{ContainerCreateOpts, ContainerListOpts, ContainerListFilter};
 
 use crate::rtbox::engine::ContainerEngine;
@@ -17,7 +17,7 @@ pub struct PodmanEngine {
 
 impl PodmanEngine {
     pub fn new(podman_uri: &String) -> Self {
-        Podman::new_versioned(podman_uri, ApiVersion::new(3, 0, 0))
+        Podman::new_versioned(podman_uri, ApiVersion::new(3, None, None))
             .map(|podman| Self {
                 podman: podman,
             }).unwrap()
@@ -28,41 +28,59 @@ impl PodmanEngine {
 impl ContainerEngine for PodmanEngine {
     async fn create(
         &self,
-        name: String,
-        image: String,
+        name: &str,
+        image: &str,
         entrypoint: Vec<String>,
-        env: Vec<(String, String)>) -> Result<Container>
-    {
+        env: Vec<(&str, String)>,
+        mounts: Vec<&(&str, &str, &str)>,
+    ) -> Result<Container> {
         debug!("podman-create - name: {:?}", name);
         debug!("FROM {:?}", image);
         debug!("ENTRYPOINT {:?}", entrypoint);
         debug!("ENV: {:?}", env);
 
-        let _podman_create_opts = ContainerCreateOpts::builder()
-            .image(image)
+        let labels = vec![
+            ("com.github.containers.toolbox", "true")
+        ];
+
+        let mounts = mounts
+            .iter()
+            .map(|mount| ContainerMount{
+                source: Some(mount.0.to_string()),
+                destination: Some(mount.1.to_string()),
+                options: Some(mount.2.split(":").map(|it| it.to_string()).collect()),
+                _type: None,
+                gid_mappings: None,
+                uid_mappings: None,
+            })
+            .collect::<Vec<ContainerMount>>();
+
+        let podman_create_opts = ContainerCreateOpts::builder()
+            .image(image.to_string())
             .command(entrypoint)
             .env(env)
+            .mounts(mounts)
+            .hostname(format!("{}.host", name))
+            .name(name.to_string())
+            .selinux_opts(vec!["disable"])
+            .work_dir("/var/home/akdev")
+            .labels(labels)
+            .user_namespace(Namespace{
+                nsmode: Some("keep-id".to_string()),
+                value: None,
+            })
             .build();
+        debug!("podman_create_opts: {:?}", podman_create_opts);
             
-        /*
         self.podman.containers()
-            .create(
-			   &ContainerCreateOpts::builder()
-				.image(image)
-                .command(vec![
-                    "/usr/bin/sleep".to_string(), "infinity".to_string(),
-                ])
-                .env(env)
-                .build(),
-			).await
+            .create(&podman_create_opts)
+            .await
 			.map(|container| self.podman.containers().get(container.id))
-        */
-
-        Err(RtBoxError {
-            message: Some("not implemented".to_string()),
-            command: None,
-            root_cause: Some("not implemented".to_string()),
-        })
+            .map_err(|err| RtBoxError {
+                command: Some("create".to_string()),
+                message: Some(err.to_string()),
+                root_cause: Some("podman".to_string())
+            })
     }
 
     async fn list(&self, all: bool) -> Result<Vec<ListContainer>> {

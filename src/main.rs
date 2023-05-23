@@ -6,6 +6,7 @@ mod rtbox{
     pub mod config;
     pub mod engine;
     pub mod error;
+    pub mod formatters;
     pub mod init;
     pub mod podman;
 }
@@ -20,6 +21,7 @@ use rtbox::config::RtBoxConfig;
 use rtbox::engine::{RtBoxEngine, RtBox};
 use rtbox::error::RtBoxError;
 use rtbox::podman::PodmanEngine;
+use rtbox::formatters::{HumanFormatter, JsonFormatter, OutputFormatter};
 
 
 #[tokio::main]
@@ -44,15 +46,14 @@ async fn main() {
             );
 
 
-            let image = image.unwrap_or("fedora:latest".to_string());
+            let image = image.unwrap_or("fedora-toolbox:38".to_string());
 
-            if let Ok(tbox) = rtbox_engine.create(&name, &image).await {
-                Output::Create(tbox)
-            } else {
-                Output::Error(RtBoxError{
+            match rtbox_engine.create(&name, &image).await {
+                Ok(tbox) => Output::Create(tbox),
+                Err(error) => Output::Error(RtBoxError{
                     command: Some("create".to_string()),
-                    message: Some("error creating container".to_string()),
-                    root_cause: Some("not implemented".to_string()),
+                    message: error.message,
+                    root_cause: error.root_cause,
                 })
             }
         }
@@ -162,19 +163,12 @@ async fn main() {
         }
     };
 
-    /* We check the format selected and dispatch to the correct formatter */
-    let output = match args.format {
-        TboxCliOutputFormat::Human => {
-            "HUMAN FORMAT".to_string()
-        },
-        TboxCliOutputFormat::Json => {
-            if let Ok(formatted_output) = serde_json::to_string_pretty(&output) {
-                formatted_output
-            } else {
-                "ERROR SERIALIZING".to_string()
-            }
-        },
+    let formatter: Box<dyn OutputFormatter> = match args.format {
+        TboxCliOutputFormat::Human => Box::new(HumanFormatter{}),
+        TboxCliOutputFormat::Json => Box::new(JsonFormatter{}),
     };
 
-    println!("{}", output);
+    if let Some(output) = formatter.format(&output) {
+        println!("{}", output);
+    }
 }
